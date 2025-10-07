@@ -1,0 +1,15 @@
+{
+  "name": "chatbot",
+  "version": "1.0.0",
+  "description": "A Replit-hosted webhook for Dialogflow.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dialogflow-fulfillment": "^0.6.1",
+    "express": "^5.1.0",
+    "mongodb": "^6.20.0",
+    "pg": "^8.16.3"
+  }
+}
