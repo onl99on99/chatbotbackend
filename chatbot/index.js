@@ -9,6 +9,7 @@ const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/
 const uri = process.env.MONGO_URI; 
 const client = new MongoClient(uri, {
     serverSelectionTimeoutMS: 5000,
+  
     connectTimeoutMS: 10000,
     maxPoolSize: 10,
 });
@@ -74,7 +75,7 @@ async function generateTeacherResponse(userQuery, teacherData) {
         ---
         你的回答：`;
 
-    console.log("Sending Teacher prompt (v8) to Gemini:", prompt);
+    console.log("Sending Teacher prompt (v9) to Gemini:", prompt);
     return await callGeminiAPI(prompt);
 }
 
@@ -93,31 +94,60 @@ async function generateFallbackResponse(userQuery) {
         ---
         你的俏皮回絕：`;
     
-    console.log("Sending Fallback prompt (v8) to Gemini:", prompt);
+    console.log("Sending Fallback prompt (v9) to Gemini:", prompt);
     return await callGeminiAPI(prompt);
 }
 
 async function callGeminiAPI(prompt) {
     try {
-        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+        const payload = { 
+            contents: [{ parts: [{ text: prompt }] }],
+            safetySettings: [
+                {
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_ONLY_HIGH"
+                },
+                {
+                    "category": "HARM_CATEGORY_HATE_SPEECH",
+                    "threshold": "BLOCK_ONLY_HIGH"
+                },
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_ONLY_HIGH"
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_ONLY_HIGH"
+                }
+            ]
+        };
+
         const response = await fetch(GEMINI_API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
+
         if (!response.ok) { 
             const errorBody = await response.text();
             throw new Error(`Gemini API request failed ${response.status}: ${errorBody}`); 
         }
         const result = await response.json();
+
+        if (result.candidates && result.candidates[0].finishReason === 'SAFETY') {
+            console.warn("Gemini 拒絕回答 (安全設定)。 Query:", prompt);
+            return null;
+        }
+
         if (!result.candidates || !result.candidates[0].content) { 
             throw new Error("Invalid Gemini response structure"); 
         }
+        
         const text = result.candidates[0].content.parts[0].text;
-        console.log("Gemini v8 response:", text);
+        console.log("Gemini v9 response:", text);
         return text.trim();
     } catch (error) {
-        console.error("Gemini API call (v8) failed:", error.message);
+        console.error("Gemini API call (v9) failed:", error.message);
         return null;
     }
 }
@@ -165,13 +195,13 @@ const app = express();
 app.use(express.json());
 
 app.get('/', (req, res) => {
-    res.send('Dialogflow Webhook Server is running (v8 - Ultimate AI Fallback)!');
+    res.send('Dialogflow Webhook Server is running (v9 - Safety Settings)!');
 });
 
 app.post('/webhook', (request, response) => {
     const agent = new WebhookClient({ request, response });
     function welcome(agent) {
-        agent.add(`你好！我是你的校園助理，有什麼問題儘管問我吧！(v8版)`);
+        agent.add(`你好！我是你的校園助理，有什麼問題儘管問我吧！(v9版)`);
     }
     let intentMap = new Map();
     intentMap.set('Default Welcome Intent', welcome);
@@ -182,5 +212,5 @@ app.post('/webhook', (request, response) => {
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
-    console.log(`Dialogflow webhook server (v8) listening on port ${port}`);
+    console.log(`Dialogflow webhook server (v9) listening on port ${port}`);
 });
