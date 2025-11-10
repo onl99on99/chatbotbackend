@@ -173,7 +173,7 @@ const express = require('express');
     app.post('/webhook', (request, response) => {
         const agent = new WebhookClient({ request, response });
         function welcome(agent) {
-            agent.add(`你好！我是你的校園助理，有什麼問題儘管問我吧！(v9版)`);
+            agent.add(`你好！我是你的校園助理，有甚麼問題儘管問我吧！`);
         }
         let intentMap = new Map();
         intentMap.set('Default Welcome Intent', welcome);
