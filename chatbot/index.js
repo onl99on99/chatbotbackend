@@ -208,7 +208,7 @@ async function handleGetTeacherInfo(agent) {
     
     // 🔥 新增：提取原始用戶輸入的老師名字（可能有錯字）
     const userQuery = agent.query;
-    const originalInput = extractTeacherNameFromQuery(userQuery);
+    const originalInput = agent.parameters['teacherName.original'] || null;
     const wasTypoCorrected = originalInput && (originalInput !== teacherName);
     
     console.log(`\n🔍 查詢老師：${teacherName}`);
