@@ -126,8 +126,4 @@ const port = process.env.PORT || 5000;
 app.listen(port, () => {
     console.log(`🚀 Dialogflow webhook server (OLD VERSION - MongoDB Only) listening on port ${port}`);
 });
-```eof
 
-你只要把這個檔案部署到 Render，然後去 Dialogflow 測試，就能完美重現你想要的「**資料全丟、可讀性低**」的舊版截圖了。
-
-再次為我之前的卡住道歉！
